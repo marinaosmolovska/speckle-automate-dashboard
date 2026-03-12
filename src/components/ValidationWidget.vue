@@ -190,13 +190,14 @@ onMounted(() => {
 <style scoped>
 .validation-widget {
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 600px;
   overflow: hidden;
+  border: 1.5px solid #d1d5db;
 }
 
 /* Excel Section - 85% */
@@ -213,13 +214,13 @@ onMounted(() => {
   gap: 4px;
   padding: 12px 12px 0 12px;
   background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #d1d5db;
 }
 
 .tab-button {
   padding: 8px 16px;
   background: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #d1d5db;
   border-bottom: none;
   border-radius: 6px 6px 0 0;
   font-size: 13px;
@@ -232,6 +233,7 @@ onMounted(() => {
 .tab-button:hover {
   background: #f8fafc;
   color: #3b82f6;
+  border-color: #9ca3af;
 }
 
 .tab-button.active {
@@ -254,7 +256,7 @@ onMounted(() => {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #d1d5db;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
@@ -266,14 +268,14 @@ onMounted(() => {
   text-align: left;
   font-weight: 600;
   color: #475569;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #d1d5db;
   white-space: nowrap;
   z-index: 10;
 }
 
 .excel-table td {
   padding: 10px 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #d1d5db;
   color: #1e293b;
   background: white;
 }

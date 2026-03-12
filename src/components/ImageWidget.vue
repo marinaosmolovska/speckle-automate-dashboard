@@ -95,13 +95,14 @@ function downloadImage() {
 .image-widget {
   background: white;
   padding: 28px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   transition: box-shadow 0.3s;
+  border: 1.5px solid #d1d5db;
 }
 
 .image-widget:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
 }
 
 .widget-header {
@@ -128,7 +129,7 @@ function downloadImage() {
 .download-btn {
   padding: 8px 16px;
   background: #f1f5f9;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 13px;
   font-weight: 600;
@@ -139,7 +140,7 @@ function downloadImage() {
 
 .download-btn:hover {
   background: #e2e8f0;
-  border-color: #cbd5e1;
+  border-color: #9ca3af;
 }
 
 .image-container {

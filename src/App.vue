@@ -80,33 +80,51 @@
       </div>
 
       <div v-else class="dashboard-grid">
-        <ImageWidget
-          v-if="pieChartImageUrl"
-          :imageUrl="pieChartImageUrl"
-          :title="pieChartTitle"
-          :description="pieChartDescription"
-        />
-        <div v-else class="widget-placeholder">
-          <div class="placeholder-icon">📊</div>
-          <h3>Pie Chart Visualization</h3>
-          <p>No pie chart image found in latest run</p>
-          <p class="placeholder-hint">
-            Function ID: <code>{{ config.pieChartFunctionId }}</code>
-          </p>
+        <!-- Left Column: 3D Viewer (Large) -->
+        <div class="grid-left">
+          <SpeckleViewer
+            :projectId="config.projectId"
+            :modelId="config.modelId"
+            :token="speckleToken"
+          />
         </div>
 
-        <ValidationWidget
-          v-if="validatorResults"
-          :data="validatorResults"
-          :title="validatorTitle"
-        />
-        <div v-else class="widget-placeholder">
-          <div class="placeholder-icon">✅</div>
-          <h3>Type Based Program Floor Validator</h3>
-          <p>No validation results found in latest run</p>
-          <p class="placeholder-hint">
-            Function ID: <code>{{ config.validatorFunctionId }}</code>
-          </p>
+        <!-- Right Column: Two Stacked Widgets -->
+        <div class="grid-right">
+          <!-- Top Right: Pie Chart Widget -->
+          <div class="grid-top-right">
+            <ImageWidget
+              v-if="pieChartImageUrl"
+              :imageUrl="pieChartImageUrl"
+              :title="pieChartTitle"
+              :description="pieChartDescription"
+            />
+            <div v-else class="widget-placeholder">
+              <div class="placeholder-icon">📊</div>
+              <h3>Pie Chart Visualization</h3>
+              <p>No pie chart image found in latest run</p>
+              <p class="placeholder-hint">
+                Function ID: <code>{{ config.pieChartFunctionId }}</code>
+              </p>
+            </div>
+          </div>
+
+          <!-- Bottom Right: Excel/Validator Widget -->
+          <div class="grid-bottom-right">
+            <ValidationWidget
+              v-if="validatorResults"
+              :data="validatorResults"
+              :title="validatorTitle"
+            />
+            <div v-else class="widget-placeholder">
+              <div class="placeholder-icon">✅</div>
+              <h3>Type Based Program Floor Validator</h3>
+              <p>No validation results found in latest run</p>
+              <p class="placeholder-hint">
+                Function ID: <code>{{ config.validatorFunctionId }}</code>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -137,8 +155,10 @@ import { ref, computed, onMounted } from 'vue'
 import { useSpeckleData } from './composables/useSpeckleData'
 import ImageWidget from './components/ImageWidget.vue'
 import ValidationWidget from './components/ValidationWidget.vue'
+import SpeckleViewer from './components/SpeckleViewer.vue'
 
 // Load configuration from environment variables
+const speckleToken = import.meta.env.VITE_SPECKLE_TOKEN
 const config = ref({
   projectId: import.meta.env.VITE_PROJECT_ID,
   modelId: import.meta.env.VITE_MODEL_ID,
@@ -334,29 +354,39 @@ onMounted(() => {
 <style scoped>
 .dashboard {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: #fafbfc;
+  display: flex;
+  flex-direction: column;
 }
 
 .header {
-  background: white;
-  padding: 24px 32px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  background: #1f2937;
+  padding: 16px 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 20px;
   flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
 }
 
 .header-content h1 {
-  font-size: 24px;
-  color: #1e293b;
-  margin-bottom: 4px;
+  font-size: 22px;
+  color: #ffffff;
+  margin: 0;
+  font-weight: 600;
 }
 
 .subtitle {
-  font-size: 14px;
-  color: #64748b;
+  font-size: 13px;
+  color: #d1d5db;
+  margin: 4px 0 0 0;
 }
 
 .header-actions {
@@ -366,23 +396,24 @@ onMounted(() => {
 }
 
 .refresh-btn {
-  padding: 10px 20px;
+  padding: 8px 16px;
   background: #3b82f6;
   color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14px;
+  border: 1px solid #60a5fa;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 13px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 .refresh-btn:hover:not(:disabled) {
   background: #2563eb;
-  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
 }
 
 .refresh-btn:disabled {
@@ -401,11 +432,13 @@ onMounted(() => {
 }
 
 .status-badge {
-  padding: 8px 16px;
+  padding: 6px 12px;
   border-radius: 6px;
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: 500;
+  font-size: 12px;
   white-space: nowrap;
+  background: rgba(255,255,255,0.1);
+  color: #e5e7eb;
 }
 
 .status-badge.success {
@@ -420,14 +453,17 @@ onMounted(() => {
 
 .status-badge.loading,
 .status-badge.pending {
-  background: #fef3c7;
-  color: #92400e;
+  background: rgba(255,255,255,0.1);
+  color: #e5e7eb;
 }
 
 .config-panel {
   padding: 40px 20px;
   max-width: 700px;
   margin: 0 auto;
+  flex: 1;
+  display: flex;
+  align-items: center;
 }
 
 .config-card {
@@ -435,6 +471,7 @@ onMounted(() => {
   padding: 40px;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  width: 100%;
 }
 
 .config-card h2 {
@@ -523,6 +560,9 @@ onMounted(() => {
   padding: 40px 20px;
   max-width: 600px;
   margin: 0 auto;
+  flex: 1;
+  display: flex;
+  align-items: center;
 }
 
 .error-card {
@@ -531,6 +571,7 @@ onMounted(() => {
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   text-align: center;
+  width: 100%;
 }
 
 .error-card h3 {
@@ -551,7 +592,7 @@ onMounted(() => {
 }
 
 .btn-primary {
-  padding: 14px 24px;
+  padding: 10px 24px;
   background: #3b82f6;
   color: white;
   border: none;
@@ -567,12 +608,19 @@ onMounted(() => {
 }
 
 .dashboard-content {
-  padding: 32px;
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .loading-panel {
-  text-align: center;
-  padding: 80px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
   color: #64748b;
 }
 
@@ -584,25 +632,82 @@ onMounted(() => {
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-  gap: 24px;
-  max-width: 1600px;
-  margin: 0 auto;
+  grid-template-columns: 1.7fr 1.3fr;
+  gap: 16px;
+  height: 100%;
+  width: 100%;
 }
 
-@media (max-width: 1100px) {
+.grid-left {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+}
+
+.grid-right {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 8px;
+  height: 100%;
+  min-width: 0;
+}
+
+.grid-top-right,
+.grid-bottom-right {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 1400px) {
+  .header-content h1 {
+    font-size: 20px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+  }
+
+  .refresh-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 1200px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .grid-left,
+  .grid-right {
+    height: auto;
+    min-height: 400px;
+  }
+
+  .grid-right {
+    grid-template-rows: auto auto;
+  }
+
+  .dashboard-content {
+    padding: 12px;
+  }
+
+  .dashboard-grid {
+    gap: 12px;
   }
 }
 
 .widget-placeholder {
   background: white;
   padding: 60px 40px;
-  border-radius: 12px;
-  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  border: 1.5px solid #d1d5db;
   text-align: center;
-  color: #64748b;
+  color: #6b7280;
 }
 
 .placeholder-icon {
@@ -625,7 +730,7 @@ onMounted(() => {
 .placeholder-hint {
   margin-top: 16px;
   font-size: 12px;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .placeholder-hint code {
