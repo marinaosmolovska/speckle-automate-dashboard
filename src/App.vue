@@ -59,6 +59,12 @@
             <li>Fill in all values in <code>.env</code></li>
             <li>Restart the dev server: <code>npm run dev</code></li>
           </ol>
+          
+          <div class="id-finder" v-if="showIdFinder">
+            <h4>🔍 Function ID Finder</h4>
+            <p>Enable this in your .env to see all function IDs:</p>
+            <code>VITE_SHOW_FUNCTION_IDS=true</code>
+          </div>
         </div>
       </div>
     </div>
@@ -103,7 +109,7 @@
               <h3>Pie Chart Visualization</h3>
               <p>No pie chart image found in latest run</p>
               <p class="placeholder-hint">
-                Function ID: <code>{{ config.pieChartFunctionId }}</code>
+                Function ID: <code>{{ config.pieChartFunctionId || 'Not set' }}</code>
               </p>
             </div>
           </div>
@@ -120,8 +126,52 @@
               <h3>Type Based Program Floor Validator</h3>
               <p>No validation results found in latest run</p>
               <p class="placeholder-hint">
-                Function ID: <code>{{ config.validatorFunctionId }}</code>
+                Function ID: <code>{{ config.validatorFunctionId || 'Not set' }}</code>
               </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Function ID Finder (only shows if VITE_SHOW_FUNCTION_IDS=true) -->
+      <div v-if="showIdFinder && automateResults?.functionRuns" class="id-finder-panel">
+        <div class="finder-header">
+          <h3>🔍 Function ID Finder - Use these IDs in your .env file</h3>
+        </div>
+        <div class="finder-content">
+          <p class="finder-intro">
+            Copy the function IDs below into your <code>.env</code> file:
+          </p>
+          
+          <div v-if="automateResults?.functionRuns" class="function-list">
+            <div v-for="(run, idx) in automateResults.functionRuns" :key="idx" class="function-card">
+              <div class="function-header">
+                <h4>{{ run.functionName }}</h4>
+                <span class="status-badge" :class="run.status.toLowerCase()">
+                  {{ run.status }}
+                </span>
+              </div>
+              
+              <div class="function-details">
+                <div class="id-row">
+                  <strong>Function ID:</strong>
+                  <code class="copyable" @click="copyToClipboard(run.functionId)">
+                    {{ run.functionId }}
+                  </code>
+                  <button @click="copyToClipboard(run.functionId)" class="copy-btn">
+                    📋 Copy
+                  </button>
+                </div>
+                
+                <div class="env-example">
+                  <strong>Use in .env as:</strong>
+                  <pre @click="copyToClipboard(getEnvLine(run))">{{ getEnvLine(run) }}</pre>
+                </div>
+                
+                <div v-if="run.status === 'SUCCEEDED'" class="blob-info">
+                  <p>Has {{ getBlobCount(run) }} blob attachment(s)</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -142,6 +192,18 @@
             <p>• ID: <code>{{ run.functionId }}</code></p>
             <p>• Name: {{ run.functionName }}</p>
             <p>• Status: {{ run.status }}</p>
+          </div>
+
+          <div v-if="pieChartImageUrl" class="debug-function" style="background: #dcfce7; border: 2px solid #16a34a;">
+            <p><strong>✅ Pie Chart Source:</strong></p>
+            <p>• Function: {{ pieChartTitle }}</p>
+            <p>• URL: <code>{{ pieChartImageUrl }}</code></p>
+          </div>
+          
+          <div v-if="validatorResults" class="debug-function" style="background: #dbeafe; border: 2px solid #3b82f6;">
+            <p><strong>✅ Validator Source:</strong></p>
+            <p>• Function: {{ validatorTitle }}</p>
+            <p>• Blobs: {{ validatorResults.blobUrls?.length || 0 }}</p>
           </div>
         </div>
       </details>
@@ -164,6 +226,9 @@ const config = ref({
   validatorFunctionId: import.meta.env.VITE_VALIDATOR_FUNCTION_ID
 })
 
+// Show function ID finder if enabled
+const showIdFinder = import.meta.env.VITE_SHOW_FUNCTION_IDS === 'true'
+
 // Check configuration status
 const configStatus = computed(() => ({
   token: !!import.meta.env.VITE_SPECKLE_TOKEN,
@@ -181,15 +246,14 @@ const isConfigured = computed(() =>
   configStatus.value.validatorFn
 )
 
-// Debug log
 console.log('🔧 Configuration Status:')
 console.log('   Token:', configStatus.value.token ? '✅' : '❌')
 console.log('   Project ID:', configStatus.value.projectId ? '✅' : '❌')
 console.log('   Model ID:', configStatus.value.modelId ? '✅' : '❌')
-console.log('   Pie Chart Function:', configStatus.value.pieChartFn ? '✅' : '❌')
-console.log('   Validator Function:', configStatus.value.validatorFn ? '✅' : '❌')
+console.log('   Pie Chart Function:', configStatus.value.pieChartFn ? '✅' : '❌', config.value.pieChartFunctionId)
+console.log('   Validator Function:', configStatus.value.validatorFn ? '✅' : '❌', config.value.validatorFunctionId)
 
-const { loading, error, automateResults, fetchAutomateResults, fetchFunctionRuns } = useSpeckleData()
+const { loading, error, automateResults, fetchAutomateResults } = useSpeckleData()
 
 const pieChartImageUrl = ref(null)
 const pieChartTitle = ref('Program Distribution')
@@ -216,6 +280,36 @@ const statusClass = computed(() => {
   if (status.toLowerCase().includes('fail')) return 'error'
   return 'pending'
 })
+
+// Helper functions for ID finder
+function getBlobCount(run) {
+  try {
+    const results = typeof run.results === 'string' ? JSON.parse(run.results) : run.results
+    return results?.values?.blobIds?.length || 0
+  } catch {
+    return 0
+  }
+}
+
+function getEnvLine(run) {
+  const varName = run.functionName.toLowerCase().includes('pie') || 
+                  run.functionName.toLowerCase().includes('chart') ||
+                  run.functionName.toLowerCase().includes('visualization')
+    ? 'VITE_PIE_CHART_FUNCTION_ID'
+    : run.functionName.toLowerCase().includes('validator')
+    ? 'VITE_VALIDATOR_FUNCTION_ID'
+    : 'VITE_FUNCTION_ID'
+  
+  return `${varName}=${run.functionId}`
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    alert(`Copied: ${text}`)
+  }).catch(() => {
+    alert(`Failed to copy. Please copy manually: ${text}`)
+  })
+}
 
 async function parseAutomateResults(results) {
   if (!results || !results.functionRuns) {
@@ -249,51 +343,35 @@ async function parseAutomateResults(results) {
         
         // Fetch blob metadata from Speckle
         for (const blobId of parsedResults.values.blobIds) {
-          try {
-            const blobUrl = `https://app.speckle.systems/api/stream/${config.value.projectId}/blob/${blobId}`
-            console.log(`   📥 Blob URL: ${blobUrl}`)
-            blobUrls.push({
-              id: blobId,
-              url: blobUrl
-            })
-          } catch (err) {
-            console.error(`   ❌ Error fetching blob ${blobId}:`, err)
-          }
+          const blobUrl = `https://app.speckle.systems/api/stream/${config.value.projectId}/blob/${blobId}`
+          console.log(`   📥 Blob URL: ${blobUrl}`)
+          blobUrls.push({
+            id: blobId,
+            url: blobUrl
+          })
         }
       }
 
-      // PIE CHART FUNCTION
+      // PIE CHART FUNCTION - Match by exact function ID
       if (run.functionId === config.value.pieChartFunctionId) {
         console.log('   ✅ MATCHED: Pie Chart Function!')
         
-        // Look for PNG image in blobs
-        const imageBlob = blobUrls.find(blob => {
-          // Check if it's likely an image (pie charts are usually PNG)
-          return blob.url.toLowerCase().includes('.png') || 
-                 blob.id // Try first blob if no extension
-        })
-        
-        if (imageBlob) {
-          pieChartImageUrl.value = imageBlob.url
-          pieChartTitle.value = run.functionName
-          pieChartDescription.value = `Generated: ${new Date(run.createdAt).toLocaleString()}`
-          console.log('   📊 Pie chart image:', imageBlob.url)
-        } else if (blobUrls.length > 0) {
-          // Use first blob as fallback
+        if (blobUrls.length > 0) {
+          // Use the first blob as the pie chart image (same pattern as validator)
           pieChartImageUrl.value = blobUrls[0].url
           pieChartTitle.value = run.functionName
           pieChartDescription.value = `Generated: ${new Date(run.createdAt).toLocaleString()}`
-          console.log('   📊 Using first blob as pie chart:', blobUrls[0].url)
+          console.log('   📊 Pie chart image:', blobUrls[0].url)
         } else {
-          console.warn('   ⚠️ No image blobs found')
+          console.warn('   ⚠️ No image blobs found for pie chart')
         }
       }
       
-      // VALIDATOR FUNCTION
+      // VALIDATOR FUNCTION - Match by exact function ID (keep existing logic)
       if (run.functionId === config.value.validatorFunctionId) {
         console.log('   ✅ MATCHED: Validator Function!')
         
-        // Add blob URLs to results
+        // Add blob URLs to results (exact same pattern as before)
         validatorResults.value = {
           functionId: run.functionId,
           functionName: run.functionName,
@@ -303,7 +381,7 @@ async function parseAutomateResults(results) {
           values: parsedResults.values || {},
           markdownMessage: parsedResults.markdownMessage || '',
           objectResults: parsedResults.objectResults || [],
-          blobUrls: blobUrls, // Add blob URLs here
+          blobUrls: blobUrls,
           createdAt: run.createdAt
         }
         
@@ -317,44 +395,15 @@ async function parseAutomateResults(results) {
     }
   }
 
-  // If pie chart not found in current run, try to fetch historical successful run
-  if (!pieChartImageUrl.value && config.value.pieChartFunctionId) {
-    console.log('\n📡 Pie chart not in current run, fetching historical successful run...')
-    const historicalRun = await fetchFunctionRuns(config.value.projectId, config.value.pieChartFunctionId, 50)
-    
-    if (historicalRun) {
-      try {
-        const historicalResults = typeof historicalRun.results === 'string'
-          ? JSON.parse(historicalRun.results)
-          : (historicalRun.results || {})
-        
-        if (historicalResults.values?.blobIds && Array.isArray(historicalResults.values.blobIds)) {
-          const blobId = historicalResults.values.blobIds[0]
-          if (blobId) {
-            const blobUrl = `https://app.speckle.systems/api/stream/${config.value.projectId}/blob/${blobId}`
-            pieChartImageUrl.value = blobUrl
-            pieChartTitle.value = 'Program Distribution'
-            pieChartDescription.value = `Historical: ${new Date(historicalRun.createdAt).toLocaleString()}`
-            console.log('   ✅ Using historical successful run')
-            console.log('   📊 Pie chart image:', blobUrl)
-          }
-        }
-      } catch (err) {
-        console.error('   ❌ Error processing historical run:', err)
-      }
-    }
-  }
-
   console.log('\n📊 Dashboard Summary:')
   console.log(`   Pie Chart: ${pieChartImageUrl.value ? '✅' : '❌'}`)
   console.log(`   Validator: ${validatorResults.value ? '✅' : '❌'}`)
 }
 
-
 async function loadData() {
   console.log('🔄 Fetching automation results...')
   const results = await fetchAutomateResults(config.value.projectId, config.value.modelId)
-  if (results) parseAutomateResults(results)
+  if (results) await parseAutomateResults(results)
 }
 
 async function refreshData() {
@@ -469,12 +518,14 @@ onMounted(() => {
   color: #e5e7eb;
 }
 
-.status-badge.success {
+.status-badge.success,
+.status-badge.succeeded {
   background: #dcfce7;
   color: #166534;
 }
 
-.status-badge.error {
+.status-badge.error,
+.status-badge.failed {
   background: #fee2e2;
   color: #991b1b;
 }
@@ -487,7 +538,7 @@ onMounted(() => {
 
 .config-panel {
   padding: 40px 20px;
-  max-width: 700px;
+  max-width: 800px;
   margin: 0 auto;
   flex: 1;
   display: flex;
@@ -582,6 +633,17 @@ onMounted(() => {
 
 .help-box a:hover {
   text-decoration: underline;
+}
+
+.id-finder {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 2px solid #e2e8f0;
+}
+
+.id-finder h4 {
+  margin-bottom: 8px;
+  color: #1e293b;
 }
 
 .error-panel {
@@ -772,6 +834,140 @@ onMounted(() => {
   padding: 2px 6px;
   border-radius: 3px;
   font-family: monospace;
+}
+
+/* Function ID Finder Panel */
+.id-finder-panel {
+  max-width: 1600px;
+  margin: 24px auto 0;
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  border: 3px solid #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.finder-header {
+  margin-bottom: 20px;
+}
+
+.finder-header h3 {
+  color: #1f2937;
+  font-size: 18px;
+  margin: 0;
+}
+
+.finder-content {
+  margin-top: 0;
+}
+
+.finder-intro {
+  margin-bottom: 20px;
+  color: #64748b;
+}
+
+.function-list {
+  display: grid;
+  gap: 16px;
+}
+
+.function-card {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.function-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.function-header h4 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 16px;
+}
+
+.function-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.id-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.id-row strong {
+  min-width: 100px;
+  color: #475569;
+  font-size: 14px;
+}
+
+.copyable {
+  background: #e2e8f0;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 13px;
+  cursor: pointer;
+  flex: 1;
+}
+
+.copyable:hover {
+  background: #cbd5e1;
+}
+
+.copy-btn {
+  padding: 6px 12px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.copy-btn:hover {
+  background: #2563eb;
+}
+
+.env-example {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.env-example strong {
+  color: #475569;
+  font-size: 14px;
+}
+
+.env-example pre {
+  background: #1f2937;
+  color: #f3f4f6;
+  padding: 12px;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 13px;
+  cursor: pointer;
+  margin: 0;
+}
+
+.env-example pre:hover {
+  background: #374151;
+}
+
+.blob-info {
+  color: #16a34a;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .debug-panel {
