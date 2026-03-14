@@ -3,53 +3,52 @@
     <div class="widget-header">
       <div>
         <h3>🏗️ 3D Model Viewer</h3>
-        <p class="description">Interactive Speckle model visualization</p>
-      </div>
-      <div class="viewer-controls">
-        <button @click="resetView" class="control-btn" title="Reset view">
-          🎯 Reset
-        </button>
-        <button @click="toggleWireframe" class="control-btn" title="Toggle wireframe">
-          ☐ Wireframe
-        </button>
+        <p class="description">Speckle model visualization</p>
       </div>
     </div>
 
     <div class="viewer-container-wrapper">
-      <iframe 
-        v-if="iframeUrl && !error"
-        :src="iframeUrl"
-        class="speckle-iframe"
-        allow="camera *; fullscreen"
-      ></iframe>
-      
-      <div v-if="loading" class="loading-overlay">
-        <div class="spinner-large">⟳</div>
-        <p>Loading 3D model...</p>
-      </div>
-      
-      <div v-if="error" class="error-overlay">
-        <div class="error-icon">❌</div>
-        <p>{{ error }}</p>
-        <button @click="retryLoad" class="retry-btn">Retry</button>
+      <div class="model-display">
+        <div class="model-icon">🏢</div>
+        
+        <h4>Model Ready</h4>
+        <p class="model-text">Your Speckle 3D model is loaded and ready to view.</p>
+        
+        <a 
+          :href="`https://app.speckle.systems/streams/${projectId}`"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="view-btn"
+        >
+          ↗ View Model in Speckle
+        </a>
+
+        <div class="model-info-box">
+          <div class="info-row">
+            <span class="label">Stream:</span>
+            <code class="value">{{ projectId }}</code>
+          </div>
+          <div class="info-row">
+            <span class="label">Model:</span>
+            <code class="value">{{ modelId }}</code>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="viewer-footer">
       <div class="model-info">
         <span class="info-label">Project:</span>
-        <span class="info-value" title="Full project ID">{{ projectId }}</span>
+        <span class="info-value">{{ projectId }}</span>
         <span class="info-label">Model:</span>
-        <span class="info-value" title="Full model ID">{{ modelId }}</span>
+        <span class="info-value">{{ modelId }}</span>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-
-const props = defineProps({
+defineProps({
   projectId: {
     type: String,
     required: true
@@ -57,44 +56,10 @@ const props = defineProps({
   modelId: {
     type: String,
     required: true
-  },
-  token: {
-    type: String,
-    required: true
   }
 })
 
-const loading = ref(true)
-const error = ref(null)
-
-const iframeUrl = computed(() => {
-  if (!props.projectId || !props.modelId) {
-    return null
-  }
-  // Use Speckle's embed URL
-  return `https://app.speckle.systems/embed?stream=${props.projectId}&object=${props.modelId}`
-})
-
-function resetView() {
-  // Iframe controls are limited - user can use viewer's built-in reset button
-  console.log('Reset view requested')
-}
-
-function toggleWireframe() {
-  console.log('Wireframe toggle requested')
-}
-
-function retryLoad() {
-  error.value = null
-  loading.value = true
-}
-
-onMounted(() => {
-  // Simulate loading - iframe load is handled by the iframe itself
-  setTimeout(() => {
-    loading.value = false
-  }, 500)
-})
+console.log('✅ SpeckleViewer: Component ready')
 </script>
 
 <style scoped>
@@ -133,83 +98,95 @@ onMounted(() => {
   color: #6b7280;
 }
 
-.viewer-controls {
-  display: flex;
-  gap: 8px;
-}
-
-.control-btn {
-  padding: 6px 12px;
-  background: white;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.control-btn:hover {
-  background: #f3f4f6;
-  border-color: #9ca3af;
-}
-
 .viewer-container-wrapper {
   flex: 1;
   position: relative;
-  min-height: 300px;
-  background: #f8f9fa;
+  min-height: 0;
+  background: linear-gradient(135deg, #f8f9fa 0%, #f0f1f3 100%);
   overflow: hidden;
-}
-
-.speckle-iframe {
   width: 100%;
   height: 100%;
-  border: none;
-}
-
-.loading-overlay,
-.error-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.95);
-  z-index: 10;
 }
 
-.spinner-large {
-  font-size: 48px;
-  animation: spin 1s linear infinite;
+.model-display {
+  text-align: center;
+  padding: 32px 24px;
+  max-width: 100%;
+}
+
+.model-icon {
+  font-size: 56px;
   margin-bottom: 16px;
 }
 
-.error-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
+.model-display h4 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
 }
 
-.error-overlay p {
-  margin: 0 0 16px 0;
-  color: #666;
-}
-
-.retry-btn {
-  padding: 8px 16px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+.model-text {
+  margin: 0 0 24px 0;
   font-size: 14px;
+  color: #6b7280;
 }
 
-.retry-btn:hover {
-  background: #0056b3;
+.view-btn {
+  display: inline-block;
+  padding: 12px 28px;
+  background: #3b82f6;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.view-btn:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.model-info-box {
+  margin-top: 24px;
+  padding: 16px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.label {
+  font-weight: 500;
+  color: #374151;
+  min-width: 60px;
+}
+
+.value {
+  font-family: 'Monaco', 'Courier New', monospace;
+  background: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: #6b7280;
+  font-size: 12px;
 }
 
 .viewer-footer {
@@ -241,10 +218,5 @@ onMounted(() => {
   max-width: 150px;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
 </style>

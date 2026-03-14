@@ -141,10 +141,106 @@ export function useSpeckleData() {
     }
   }
 
+  async function fetchFunctionRuns(projectId, functionId, limit = 10) {
+    console.log(`📡 Fetching historical runs for function ${functionId}...`)
+    console.log(`   Searching last ${limit} runs per automation across all automations`)
+
+    if (!SPECKLE_TOKEN) {
+      console.error('Missing token')
+      return null
+    }
+
+    try {
+      const query = `
+        query GetFunctionRuns {
+          project(id: "${projectId}") {
+            automations(limit: 100) {
+              items {
+                runs(limit: ${limit}) {
+                  items {
+                    id
+                    status
+                    createdAt
+                    functionRuns {
+                      functionId
+                      status
+                      results
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      `
+
+      const response = await fetch(`${SPECKLE_SERVER}/graphql`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SPECKLE_TOKEN}`
+        },
+        body: JSON.stringify({ query })
+      })
+
+      if (!response.ok) {
+        throw new Error(`GraphQL failed: ${response.status}`)
+      }
+
+      const data = await response.json()
+      if (data.errors) {
+        throw new Error(`GraphQL error: ${data.errors[0]?.message}`)
+      }
+
+      const allRuns = []
+      let totalRuns = 0
+      
+      data.data?.project?.automations?.items?.forEach(automation => {
+        automation.runs?.items?.forEach(run => {
+          totalRuns++
+          run.functionRuns?.forEach(fr => {
+            if (fr.functionId === functionId) {
+              console.log(`   📋 Found run: status=${fr.status}, created=${new Date(run.createdAt).toLocaleString()}`)
+              allRuns.push({
+                automationRunId: run.id,
+                functionId: fr.functionId,
+                status: fr.status,
+                results: fr.results,
+                createdAt: run.createdAt
+              })
+            }
+          })
+        })
+      })
+
+      console.log(`   Searched ${totalRuns} runs, found ${allRuns.length} matching this function`)
+      
+      // Sort by date descending and find latest successful run
+      allRuns.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      const successfulRun = allRuns.find(r => r.status === 'SUCCEEDED')
+      
+      if (successfulRun) {
+        console.log(`   ✅ Latest successful run: ${new Date(successfulRun.createdAt).toLocaleString()}`)
+        return successfulRun
+      } else if (allRuns.length > 0) {
+        console.log(`   ⚠️ Found ${allRuns.length} runs but none SUCCEEDED (statuses: ${allRuns.map(r => r.status).join(', ')})`)
+      } else {
+        console.log(`   ❌ No runs found for this function ID`)
+      }
+      
+      return null
+
+    } catch (err) {
+      console.error('❌ Error fetching historical runs:', err.message)
+      return null
+    }
+  }
+
   return {
     loading,
     error,
     automateResults,
-    fetchAutomateResults
+    fetchAutomateResults,
+    fetchFunctionRuns
   }
 }

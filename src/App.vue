@@ -85,7 +85,6 @@
           <SpeckleViewer
             :projectId="config.projectId"
             :modelId="config.modelId"
-            :token="speckleToken"
           />
         </div>
 
@@ -158,7 +157,6 @@ import ValidationWidget from './components/ValidationWidget.vue'
 import SpeckleViewer from './components/SpeckleViewer.vue'
 
 // Load configuration from environment variables
-const speckleToken = import.meta.env.VITE_SPECKLE_TOKEN
 const config = ref({
   projectId: import.meta.env.VITE_PROJECT_ID,
   modelId: import.meta.env.VITE_MODEL_ID,
@@ -191,7 +189,7 @@ console.log('   Model ID:', configStatus.value.modelId ? '✅' : '❌')
 console.log('   Pie Chart Function:', configStatus.value.pieChartFn ? '✅' : '❌')
 console.log('   Validator Function:', configStatus.value.validatorFn ? '✅' : '❌')
 
-const { loading, error, automateResults, fetchAutomateResults } = useSpeckleData()
+const { loading, error, automateResults, fetchAutomateResults, fetchFunctionRuns } = useSpeckleData()
 
 const pieChartImageUrl = ref(null)
 const pieChartTitle = ref('Program Distribution')
@@ -319,6 +317,34 @@ async function parseAutomateResults(results) {
     }
   }
 
+  // If pie chart not found in current run, try to fetch historical successful run
+  if (!pieChartImageUrl.value && config.value.pieChartFunctionId) {
+    console.log('\n📡 Pie chart not in current run, fetching historical successful run...')
+    const historicalRun = await fetchFunctionRuns(config.value.projectId, config.value.pieChartFunctionId, 50)
+    
+    if (historicalRun) {
+      try {
+        const historicalResults = typeof historicalRun.results === 'string'
+          ? JSON.parse(historicalRun.results)
+          : (historicalRun.results || {})
+        
+        if (historicalResults.values?.blobIds && Array.isArray(historicalResults.values.blobIds)) {
+          const blobId = historicalResults.values.blobIds[0]
+          if (blobId) {
+            const blobUrl = `https://app.speckle.systems/api/stream/${config.value.projectId}/blob/${blobId}`
+            pieChartImageUrl.value = blobUrl
+            pieChartTitle.value = 'Program Distribution'
+            pieChartDescription.value = `Historical: ${new Date(historicalRun.createdAt).toLocaleString()}`
+            console.log('   ✅ Using historical successful run')
+            console.log('   📊 Pie chart image:', blobUrl)
+          }
+        }
+      } catch (err) {
+        console.error('   ❌ Error processing historical run:', err)
+      }
+    }
+  }
+
   console.log('\n📊 Dashboard Summary:')
   console.log(`   Pie Chart: ${pieChartImageUrl.value ? '✅' : '❌'}`)
   console.log(`   Validator: ${validatorResults.value ? '✅' : '❌'}`)
@@ -354,9 +380,11 @@ onMounted(() => {
 <style scoped>
 .dashboard {
   min-height: 100vh;
+  height: 100vh;
   background: #fafbfc;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .header {
@@ -613,6 +641,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  height: 0;
 }
 
 .loading-panel {
@@ -633,7 +662,7 @@ onMounted(() => {
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1.7fr 1.3fr;
-  gap: 16px;
+  gap: 0;
   height: 100%;
   width: 100%;
 }
@@ -643,12 +672,13 @@ onMounted(() => {
   flex-direction: column;
   height: 100%;
   min-width: 0;
+  overflow: hidden;
 }
 
 .grid-right {
   display: grid;
   grid-template-rows: auto 1fr;
-  gap: 8px;
+  gap: 0;
   height: 100%;
   min-width: 0;
 }
@@ -659,6 +689,10 @@ onMounted(() => {
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
+}
+
+.grid-bottom-right {
+  overflow-y: auto;
 }
 
 @media (max-width: 1400px) {

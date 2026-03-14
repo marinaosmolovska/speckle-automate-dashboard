@@ -195,7 +195,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: 600px;
+  min-height: 0;
   overflow: hidden;
   border: 1.5px solid #d1d5db;
 }
