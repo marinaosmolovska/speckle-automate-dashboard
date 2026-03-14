@@ -10,7 +10,7 @@
           :class="{ active: activeSheet === idx }"
           class="tab-button"
         >
-          📊 {{ sheet.name }}
+          {{ sheet.name }}
         </button>
       </div>
       
@@ -46,7 +46,7 @@
         download
         class="download-btn"
       >
-        📥 Download
+        Download
       </a>
     </div>
 
@@ -190,22 +190,23 @@ onMounted(() => {
 .excel-tabs {
   display: flex;
   gap: 4px;
-  padding: 12px 12px 0 12px;
+  padding: 8px 12px 0 12px;
   background: #f8fafc;
   border-bottom: 1px solid #d1d5db;
 }
 
 .tab-button {
-  padding: 8px 16px;
+  padding: 6px 12px;
   background: white;
   border: 1px solid #d1d5db;
   border-bottom: none;
   border-radius: 6px 6px 0 0;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: #64748b;
   cursor: pointer;
   transition: all 0.2s;
+  line-height: 1.2;
 }
 
 .tab-button:hover {
@@ -272,7 +273,7 @@ onMounted(() => {
 
 /* Widget Footer */
 .widget-footer {
-  padding: 16px 20px;
+  padding: 12px 20px;
   border-top: 1px solid #e2e8f0;
   background: white;
   display: flex;
@@ -285,27 +286,29 @@ onMounted(() => {
 .footer-content {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   flex: 1;
 }
 
 .widget-title {
   margin: 0;
-  font-size: 16px;
+  font-size: 15px;
   color: #1f2937;
   font-weight: 600;
+  line-height: 1.3;
 }
 
 .timestamp {
-  font-size: 12px;
+  font-size: 11px;
   color: #64748b;
+  line-height: 1.3;
 }
 
 .download-btn {
   padding: 8px 16px;
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: #3b82f6;
+  color: white;
+  border: none;
   border-radius: 6px;
   font-size: 13px;
   font-weight: 500;
@@ -318,9 +321,9 @@ onMounted(() => {
 }
 
 .download-btn:hover {
-  background: rgba(59, 130, 246, 0.15);
-  border-color: rgba(59, 130, 246, 0.3);
+  background: #2563eb;
   transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
 }
 
 /* Loading State */

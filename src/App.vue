@@ -423,7 +423,7 @@ onMounted(() => {
 .dashboard {
   min-height: 100vh;
   height: 100vh;
-  background: #fafbfc;
+  background: #e5e7eb;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -688,6 +688,7 @@ onMounted(() => {
   flex-direction: column;
   overflow: hidden;
   height: 0;
+  background: #e5e7eb;
 }
 
 .loading-panel {
@@ -727,8 +728,17 @@ onMounted(() => {
   flex-direction: column;
   min-height: 0;
   overflow-y: auto;
-  flex: 1;
+}
+
+.widget-section:first-child {
+  flex: 0 0 auto;
+  max-height: 45%;
   min-height: 400px;
+}
+
+.widget-section:last-child {
+  flex: 1;
+  min-height: 450px;
 }
 
 @media (max-width: 1400px) {

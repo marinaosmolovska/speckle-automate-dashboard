@@ -14,7 +14,7 @@
         <span class="timestamp">{{ description }}</span>
       </div>
       <a href="/pie-chart.png" download="program-blocks-pie-chart.png" class="download-btn">
-        📥 Download
+        Download
       </a>
     </div>
   </div>
@@ -46,6 +46,7 @@ defineProps({
   flex-direction: column;
   height: 100%;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  overflow: hidden;
 }
 
 .image-container {
@@ -56,6 +57,7 @@ defineProps({
   padding: 24px;
   background: white;
   overflow: hidden;
+  border-radius: 8px 8px 0 0;
 }
 
 .pie-chart-image {
@@ -66,7 +68,7 @@ defineProps({
 }
 
 .widget-footer {
-  padding: 16px 20px;
+  padding: 12px 20px;
   border-top: 1px solid #e2e8f0;
   background: white;
   display: flex;
@@ -79,27 +81,29 @@ defineProps({
 .footer-content {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   flex: 1;
 }
 
 .widget-title {
   margin: 0;
-  font-size: 16px;
+  font-size: 15px;
   color: #1f2937;
   font-weight: 600;
+  line-height: 1.3;
 }
 
 .timestamp {
-  font-size: 12px;
+  font-size: 11px;
   color: #64748b;
+  line-height: 1.3;
 }
 
 .download-btn {
   padding: 8px 16px;
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: #3b82f6;
+  color: white;
+  border: none;
   border-radius: 6px;
   font-size: 13px;
   font-weight: 500;
@@ -112,8 +116,8 @@ defineProps({
 }
 
 .download-btn:hover {
-  background: rgba(59, 130, 246, 0.15);
-  border-color: rgba(59, 130, 246, 0.3);
+  background: #2563eb;
   transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
 }
 </style>
