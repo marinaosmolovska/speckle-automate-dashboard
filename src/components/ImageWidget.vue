@@ -1,10 +1,5 @@
 <template>
   <div class="image-widget">
-    <div class="widget-header">
-      <h3>{{ title }}</h3>
-      <p v-if="description" class="description">{{ description }}</p>
-    </div>
-    
     <div class="image-container">
       <img 
         src="/pie-chart.png" 
@@ -14,7 +9,13 @@
     </div>
     
     <div class="widget-footer">
-      <span class="footer-text">Program area distribution by block type</span>
+      <div class="footer-content">
+        <h3 class="widget-title">Program area distribution by block type</h3>
+        <span class="timestamp">{{ description }}</span>
+      </div>
+      <a href="/pie-chart.png" download="program-blocks-pie-chart.png" class="download-btn">
+        📥 Download
+      </a>
     </div>
   </div>
 </template>
@@ -27,7 +28,7 @@ defineProps({
   },
   title: {
     type: String,
-    default: 'visualization-excel'
+    default: 'Program Pie Chart'
   },
   description: {
     type: String,
@@ -40,31 +41,11 @@ defineProps({
 .image-widget {
   background: white;
   border-radius: 8px;
-  overflow: hidden;
+  border: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
   height: 100%;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.widget-header {
-  padding: 20px 24px;
-  border-bottom: 1px solid #e2e8f0;
-  background: #f8fafc;
-  flex-shrink: 0;
-}
-
-.widget-header h3 {
-  margin: 0 0 8px 0;
-  font-size: 18px;
-  color: #1f2937;
-  font-weight: 600;
-}
-
-.description {
-  margin: 0;
-  font-size: 13px;
-  color: #64748b;
 }
 
 .image-container {
@@ -85,16 +66,54 @@ defineProps({
 }
 
 .widget-footer {
-  padding: 16px 24px;
+  padding: 16px 20px;
   border-top: 1px solid #e2e8f0;
   background: white;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: center;
   flex-shrink: 0;
+  gap: 16px;
 }
 
-.footer-text {
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.widget-title {
+  margin: 0;
+  font-size: 16px;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.timestamp {
   font-size: 12px;
   color: #64748b;
+}
+
+.download-btn {
+  padding: 8px 16px;
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.download-btn:hover {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.3);
+  transform: translateY(-1px);
 }
 </style>

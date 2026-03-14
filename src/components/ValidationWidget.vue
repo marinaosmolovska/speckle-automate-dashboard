@@ -1,6 +1,6 @@
 <template>
   <div class="validation-widget">
-    <!-- Excel Table Preview (85% of space) -->
+    <!-- Excel Table Preview -->
     <div v-if="excelData.length > 0" class="excel-section">
       <div class="excel-tabs" v-if="excelData.length > 1">
         <button 
@@ -34,44 +34,20 @@
       </div>
     </div>
 
-    <!-- Compact Header and Metadata (15% of space) -->
-    <div class="metadata-section">
-      <div class="header-row">
-        <h3>{{ title }}</h3>
-        <div class="status-badge-small" :class="statusClass">
-          {{ statusIcon }} {{ data.status }}
-        </div>
+    <!-- Footer with Title, Timestamp, and Download Button -->
+    <div class="widget-footer" v-if="data.blobUrls && data.blobUrls.length > 0">
+      <div class="footer-content">
+        <h3 class="widget-title">{{ title }}</h3>
+        <span class="timestamp">{{ formatDate(data.createdAt) }}</span>
       </div>
-
-      <div class="metadata-grid">
-        <div class="metadata-item">
-          <span class="label">Function:</span>
-          <span class="value">{{ data.functionName || 'Unknown' }}</span>
-        </div>
-        <div class="metadata-item">
-          <span class="label">Run Time:</span>
-          <span class="value">{{ formatDate(data.createdAt) }}</span>
-        </div>
-        <div class="metadata-item" v-if="data.blobUrls && data.blobUrls.length > 0">
-          <span class="label">Files:</span>
-          <div class="download-links">
-            <a 
-              v-for="(blob, idx) in data.blobUrls" 
-              :key="idx"
-              :href="blob.url" 
-              target="_blank"
-              class="download-link"
-            >
-              💾 File {{ idx + 1 }}
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <details class="raw-data-toggle">
-        <summary>View Raw Data</summary>
-        <pre>{{ JSON.stringify(data.results, null, 2) }}</pre>
-      </details>
+      <a 
+        v-if="data.blobUrls[0]"
+        :href="data.blobUrls[0].url" 
+        download
+        class="download-btn"
+      >
+        📥 Download
+      </a>
     </div>
 
     <!-- Loading State -->
@@ -191,22 +167,24 @@ onMounted(() => {
 .validation-widget {
   background: white;
   border-radius: 8px;
+  border: 1px solid #e2e8f0;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  border: 1.5px solid #d1d5db;
 }
 
-/* Excel Section - 85% */
+/* Widget Header */
+/* Removed - title now in footer */
+
+/* Excel Section - Takes most space */
 .excel-section {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
-  border-bottom: 2px solid #e2e8f0;
 }
 
 .excel-tabs {
@@ -292,125 +270,57 @@ onMounted(() => {
   background: #f1f5f9;
 }
 
-/* Metadata Section - 15% */
-.metadata-section {
-  padding: 20px;
-  background: #f8fafc;
+/* Widget Footer */
+.widget-footer {
+  padding: 16px 20px;
   border-top: 1px solid #e2e8f0;
-}
-
-.header-row {
+  background: white;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  flex-shrink: 0;
+  gap: 16px;
 }
 
-.header-row h3 {
-  font-size: 16px;
-  color: #1e293b;
-  margin: 0;
-}
-
-.status-badge-small {
-  padding: 4px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.status-badge-small.success {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.status-badge-small.error {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.status-badge-small.warning {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.status-badge-small.info {
-  background: #dbeafe;
-  color: #1e40af;
-}
-
-.metadata-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.metadata-item {
+.footer-content {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  flex: 1;
 }
 
-.metadata-item .label {
-  font-size: 11px;
-  color: #64748b;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.metadata-item .value {
-  font-size: 13px;
-  color: #1e293b;
-  font-family: monospace;
-}
-
-.download-links {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.download-link {
-  font-size: 12px;
-  color: #3b82f6;
-  text-decoration: none;
+.widget-title {
+  margin: 0;
+  font-size: 16px;
+  color: #1f2937;
   font-weight: 600;
 }
 
-.download-link:hover {
-  text-decoration: underline;
-}
-
-.raw-data-toggle {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #e2e8f0;
-}
-
-.raw-data-toggle summary {
-  cursor: pointer;
+.timestamp {
   font-size: 12px;
   color: #64748b;
-  font-weight: 600;
-  user-select: none;
 }
 
-.raw-data-toggle summary:hover {
+.download-btn {
+  padding: 8px 16px;
+  background: rgba(59, 130, 246, 0.1);
   color: #3b82f6;
-}
-
-.raw-data-toggle pre {
-  background: #1e293b;
-  color: #e2e8f0;
-  padding: 12px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
   border-radius: 6px;
-  font-size: 11px;
-  overflow-x: auto;
-  margin-top: 8px;
-  max-height: 200px;
-  overflow-y: auto;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.download-btn:hover {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.3);
+  transform: translateY(-1px);
 }
 
 /* Loading State */
@@ -435,4 +345,3 @@ onMounted(() => {
   to { transform: rotate(360deg); }
 }
 </style>
-

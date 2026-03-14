@@ -2,15 +2,17 @@
   <div class="dashboard">
     <header class="header">
       <div class="header-content">
-        <h1>🏗️ Hyperbuilding Program Analysis</h1>
+        <h1>Hyperbuilding Program Analysis</h1>
         <p class="subtitle">Real-time data from Speckle Automate</p>
       </div>
       <div class="header-actions">
-        <button @click="refreshData" class="refresh-btn" :disabled="loading">
-          <span class="spinner" v-if="loading">⟳</span>
-          <span v-else>🔄</span>
-          {{ loading ? 'Loading...' : 'Refresh' }}
-        </button>
+        <a 
+          href="https://app.speckle.systems/projects/bd18c64445/models/6dff2acc3c@8c41958249"
+          target="_blank"
+          class="speckle-btn"
+        >
+          Go to Speckle Model →
+        </a>
         <div class="status-badge" :class="statusClass">
           {{ statusText }}
         </div>
@@ -86,18 +88,10 @@
       </div>
 
       <div v-else class="dashboard-grid">
-        <!-- Left Column: 3D Viewer (Large) -->
-        <div class="grid-left">
-          <SpeckleViewer
-            :projectId="config.projectId"
-            :modelId="config.modelId"
-          />
-        </div>
-
-        <!-- Right Column: Two Stacked Widgets -->
-        <div class="grid-right">
-          <!-- Top Right: Pie Chart Widget -->
-          <div class="grid-top-right">
+        <!-- Two Stacked Widgets -->
+        <div class="widgets-column">
+          <!-- Top: Pie Chart Widget -->
+          <div class="widget-section">
             <ImageWidget
               v-if="pieChartImageUrl"
               :imageUrl="pieChartImageUrl"
@@ -114,8 +108,8 @@
             </div>
           </div>
 
-          <!-- Bottom Right: Excel/Validator Widget -->
-          <div class="grid-bottom-right">
+          <!-- Bottom: Excel/Validator Widget -->
+          <div class="widget-section">
             <ValidationWidget
               v-if="validatorResults"
               :data="validatorResults"
@@ -216,7 +210,6 @@ import { ref, computed, onMounted } from 'vue'
 import { useSpeckleData } from './composables/useSpeckleData'
 import ImageWidget from './components/ImageWidget.vue'
 import ValidationWidget from './components/ValidationWidget.vue'
-import SpeckleViewer from './components/SpeckleViewer.vue'
 
 // Load configuration from environment variables
 const config = ref({
@@ -437,9 +430,10 @@ onMounted(() => {
 }
 
 .header {
-  background: #1f2937;
-  padding: 16px 24px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 12px 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -454,15 +448,15 @@ onMounted(() => {
 }
 
 .header-content h1 {
-  font-size: 22px;
-  color: #ffffff;
+  font-size: 18px;
+  color: #1f2937;
   margin: 0;
   font-weight: 600;
 }
 
 .subtitle {
-  font-size: 13px;
-  color: #d1d5db;
+  font-size: 12px;
+  color: #64748b;
   margin: 4px 0 0 0;
 }
 
@@ -472,11 +466,11 @@ onMounted(() => {
   align-items: center;
 }
 
-.refresh-btn {
+.speckle-btn {
   padding: 8px 16px;
   background: #3b82f6;
   color: white;
-  border: 1px solid #60a5fa;
+  text-decoration: none;
   border-radius: 6px;
   font-weight: 500;
   font-size: 13px;
@@ -488,24 +482,10 @@ onMounted(() => {
   white-space: nowrap;
 }
 
-.refresh-btn:hover:not(:disabled) {
+.speckle-btn:hover {
   background: #2563eb;
+  transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
-}
-
-.refresh-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.spinner {
-  display: inline-block;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
 
 .status-badge {
@@ -514,26 +494,30 @@ onMounted(() => {
   font-weight: 500;
   font-size: 12px;
   white-space: nowrap;
-  background: rgba(255,255,255,0.1);
-  color: #e5e7eb;
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
 }
 
 .status-badge.success,
 .status-badge.succeeded {
   background: #dcfce7;
   color: #166534;
+  border-color: #86efac;
 }
 
 .status-badge.error,
 .status-badge.failed {
   background: #fee2e2;
   color: #991b1b;
+  border-color: #fca5a5;
 }
 
 .status-badge.loading,
 .status-badge.pending {
-  background: rgba(255,255,255,0.1);
-  color: #e5e7eb;
+  background: #f1f5f9;
+  color: #64748b;
+  border-color: #e2e8f0;
 }
 
 .config-panel {
@@ -722,39 +706,29 @@ onMounted(() => {
 }
 
 .dashboard-grid {
-  display: grid;
-  grid-template-columns: 1.7fr 1.3fr;
-  gap: 0;
-  height: 100%;
-  width: 100%;
-}
-
-.grid-left {
   display: flex;
   flex-direction: column;
+  gap: 20px;
   height: 100%;
-  min-width: 0;
-  overflow: hidden;
+  width: 100%;
+  max-width: 100%;
 }
 
-.grid-right {
-  display: grid;
-  grid-template-rows: auto 1fr;
-  gap: 0;
+.widgets-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
   height: 100%;
   min-width: 0;
 }
 
-.grid-top-right,
-.grid-bottom-right {
+.widget-section {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  overflow: hidden;
-}
-
-.grid-bottom-right {
   overflow-y: auto;
+  flex: 1;
+  min-height: 400px;
 }
 
 @media (max-width: 1400px) {
@@ -773,26 +747,11 @@ onMounted(() => {
 }
 
 @media (max-width: 1200px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-    height: auto;
-  }
-
-  .grid-left,
-  .grid-right {
-    height: auto;
-    min-height: 400px;
-  }
-
-  .grid-right {
-    grid-template-rows: auto auto;
-  }
-
   .dashboard-content {
     padding: 12px;
   }
 
-  .dashboard-grid {
+  .widgets-column {
     gap: 12px;
   }
 }
